@@ -13,18 +13,14 @@ Cmd line instructions:
 3-6. do_train, do_test, do_save, do_load. Booleans
 
 Example command:
-python ff_predict.py 35 -1 false true false true
-python ff_predict.py 36 1 true false true false
-python ff_predict.py 37 2 true false true false
-python ff_predict.py 38 3 true false true false
-python ff_predict.py 39 4 true false true false
+python ff_predict.py 99 0 true false false false
 '''
 
 # Model
 model_dir = '/cnl/data/spate/Corn/models/'
 n_inputs = 1 # Input dimension
-n_outputs = 1 # Output dimension
-hidden_widths = [10, 10, 10, 10, 10] # Width of each hidden layer
+n_outputs = n_inputs # Output dimension
+hidden_widths = [10, 10, 10] # Width of each hidden layer
 activation_fcn = F.relu
 model_no = int(sys.argv[1])
 do_train, do_test, do_save, do_load = [sys.argv[i].lower() == 'true' for i in range(3,7)]
@@ -37,6 +33,7 @@ n_samples = 500 # Total number of data samples
 dt = 0.01
 data_dir = '/home/spate/Res/targets/'
 data_fn = data_dir + 'mackey_glass_beta_2_gamma_1_n_9.65_tau_2_n_samples_500_n_steps_4000_dt_0.01.csv'
+# data_fn = data_dir + 'lorenz_params_sig_10.00_rho_28.00_beta_2.67_n_samples_500_n_steps_4000_dt_0.01.csv'
 
 # Training
 batch_size = 50

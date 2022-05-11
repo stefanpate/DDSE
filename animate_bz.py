@@ -5,14 +5,14 @@ from mat73 import loadmat
 import sys
 
 # Load data
-# mat = loadmat('BZ.mat')
-# data = mat['BZ_tensor']
 data_dir = '/cnl/data/spate/Corn/'
 fn = data_dir + sys.argv[1]
 data = np.loadtxt(fn, delimiter=',')
 y, x, t = 351, 451, data.shape[-1]
+k = 200
+
 data = data.reshape(y, x, t)
-# data = np.random.rand(351, 451, 200)
+data = data[:,:,:k]
 
 # Set up figure
 y, x, t = 351, 451, data.shape[-1]
