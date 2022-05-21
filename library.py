@@ -7,6 +7,8 @@ from scipy.linalg import svd, eig
 from collections import Counter
 from math import factorial
 from itertools import permutations, combinations
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 def rand_svd(x, r):
     '''
@@ -276,3 +278,31 @@ def get_terms(form, vars):
             terms.append(perm)
 
     return terms
+
+# Make animated heatmap plot
+
+def make_movie(data, k, loc, cmap='viridis', interval=20, a=5):
+    '''
+    Makes a gif movie and saves to location 'loc'.
+    Uses k timesteps from (y, x, t) data tensor.
+    Optional args: cmap, interval, a (scales figure)
+    '''
+    data = data[:,:,:k]
+
+    # Set up figure
+    y, x, t = data.shape
+    fig = plt.figure(figsize=(a * (x/y), a * (x/x)))
+    ax = plt.axes(xlim=(0, x), ylim=(0, y))
+
+    cax = ax.pcolormesh(np.flipud(data[:-1, :-1, 0]), cmap=cmap)
+    fig.colorbar(cax)
+
+    def animate(i):
+        cax.set_array(np.flipud(data[:-1, :-1, i]).flatten())
+
+    anim = FuncAnimation(fig, animate, interval=interval, frames=t-1)
+
+    # Save
+    anim.save(loc + '.gif', writer='imagemagick')
+
+    plt.close()
