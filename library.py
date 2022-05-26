@@ -25,7 +25,6 @@ def rand_svd(x, r):
 
     return u, s, vt
 
-
 # Dynamic mode decomposition
 
 class dmd:
@@ -189,7 +188,6 @@ def get_forms(n, max_exp):
 
     return forms
 
-
 def get_count(form, d):
     '''
     Counts the number of polynomial terms of specified form
@@ -279,11 +277,9 @@ def get_terms(form, vars):
 
     return terms
 
-# Make animated heatmap plot
-
-def make_movie(data, k, loc, cmap='viridis', interval=20, a=5):
+def make_movie(data, k, loc, cmap='viridis', interval=50, a=5, vmin=None, vmax=None):
     '''
-    Makes a gif movie and saves to location 'loc'.
+    Makes a gif heatmap movie and saves to location 'loc'.
     Uses k timesteps from (y, x, t) data tensor.
     Optional args: cmap, interval, a (scales figure)
     '''
@@ -291,10 +287,14 @@ def make_movie(data, k, loc, cmap='viridis', interval=20, a=5):
 
     # Set up figure
     y, x, t = data.shape
+
+    if (vmin == None) | (vmax == None):
+        vmin, vmax = data.min(), data.max()
+    
     fig = plt.figure(figsize=(a * (x/y), a * (x/x)))
     ax = plt.axes(xlim=(0, x), ylim=(0, y))
 
-    cax = ax.pcolormesh(np.flipud(data[:-1, :-1, 0]), cmap=cmap)
+    cax = ax.pcolormesh(np.flipud(data[:-1, :-1, 0]), cmap=cmap, vmin=vmin, vmax=vmax)
     fig.colorbar(cax)
 
     def animate(i):
@@ -306,3 +306,30 @@ def make_movie(data, k, loc, cmap='viridis', interval=20, a=5):
     anim.save(loc + '.gif', writer='imagemagick')
 
     plt.close()
+
+def mask_sst(sst_st, mask):
+    '''
+    Returns a 3d masked array from provided
+    2d sst array (space, time), and boolean mask.
+    '''
+    lat_span, long_span = mask.shape[:2]
+    t_span = sst_st.shape[-1]
+    sst_masked = np.zeros(shape=(lat_span * long_span, t_span))
+    sst_masked[mask.reshape(-1,), :] = sst_st # Put real sst data in place
+    mask = np.repeat(mask, t_span, axis=-1)
+    sst_masked = sst_masked.reshape(lat_span, long_span, t_span)
+    sst_masked = np.ma.masked_where(~mask, sst_masked) # Return masked tensor for visualization
+
+    return sst_masked
+
+# Dict mapping dataset names to file names
+data_dir = '/cnl/data/spate/Datasets/'
+
+data2fn = {
+            'lorenz':data_dir + 'lorenz_params_sig_10.00_rho_28.00_beta_2.67_n_samples_500_n_steps_4000_dt_0.01.csv',
+            'mackey_glass':data_dir + 'mackey_glass_beta_2_gamma_1_n_9.65_tau_2_n_samples_500_n_steps_4000_dt_0.01.csv',
+            'rossler':data_dir + 'rossler_params_a_0.20_b_0.20_c_5.70_n_samples_500_n_steps_8000_dt_0.01.csv',
+            'sine':data_dir + 'sine_period_10_n_samples_100_n_steps_4000_dt_0.01.csv',
+            'sst':data_dir + 'sst.csv',
+            'sst_mask':data_dir + 'sst_mask.csv',
+            }

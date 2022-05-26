@@ -4,16 +4,10 @@ import numpy as np
 from ff_neural_net import Net
 import matplotlib.pyplot as plt
 import sys
+from library import data2fn
 
 '''
-Cmd line instructions:
-
-1. Model number (model_no)
-2. GPU (gpu): -1 => cpu, 0 and above => gpu
-3-6. do_train, do_test, do_save, do_load. Booleans
-
-Example command:
-python ff_predict.py 7 0 true false true false
+Loads and tests saved models.
 '''
 # Model
 model_dir = '/cnl/data/spate/Corn/models/'
@@ -29,8 +23,8 @@ gpu = -1 # GPU number. -1 for CPU
 n_steps = 4000 # Length of time series
 n_samples = 500 # Total number of data samples
 dt = 0.01
-data_dir = '/home/spate/Res/targets/'
-data_fn = data_dir + 'lorenz_params_sig_10.00_rho_28.00_beta_2.67_n_samples_500_n_steps_4000_dt_0.01.csv'
+dataset = 'lorenz'
+data_fn = data2fn[dataset]
 train_frac = 0.8 # Train / test data split
 switch_t = 20 # When to switch between teacher forcing and output feedback
 switch_step = int(20 / dt) # Timestep associated with switch_t
@@ -66,7 +60,7 @@ test_output_traces = []
 save_last_t = []
 for model_no in model_numbers:
     print(f"Loading model #{model_no}")
-    net = torch.load(model_dir + f"lorenz_predict_net_{model_no}.pth", map_location=device)
+    net = torch.load(model_dir + f"{dataset}_predict_net_{model_no}.pth", map_location=device)
 
     output = []
     for i in range(n_steps - 1):
@@ -97,5 +91,5 @@ for model_no in model_numbers:
 save_last_t = np.vstack(save_last_t) # (n_models, n_test_samples)
 test_output_traces = np.vstack(test_output_traces) # (n_models * n_test_samples * n_inputs, n_steps - 1)
 
-np.savetxt(save_dir + f"ff_nn_predict_lorenz_test_output_traces_models_{model_numbers[0]}_{model_numbers[-1]}.csv", test_output_traces, delimiter=',')
-np.savetxt(save_dir + f"ff_nn_predict_lorenz_test_last_t_models_{model_numbers[0]}_{model_numbers[-1]}.csv", save_last_t, delimiter=',')
+np.savetxt(save_dir + f"ff_nn_predict_{dataset}_test_output_traces_models_{model_numbers[0]}_{model_numbers[-1]}.csv", test_output_traces, delimiter=',')
+np.savetxt(save_dir + f"ff_nn_predict_{dataset}_test_last_t_models_{model_numbers[0]}_{model_numbers[-1]}.csv", save_last_t, delimiter=',')

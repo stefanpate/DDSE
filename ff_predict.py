@@ -4,6 +4,7 @@ import numpy as np
 from ff_neural_net import Net
 import matplotlib.pyplot as plt
 import sys
+from library import data2fn
 
 '''
 Cmd line instructions:
@@ -31,9 +32,8 @@ gpu = int(sys.argv[2]) # GPU number. -1 for CPU
 n_steps = 4000 # Length of time series
 n_samples = 500 # Total number of data samples
 dt = 0.01
-data_dir = '/home/spate/Res/targets/'
-data_fn = data_dir + 'mackey_glass_beta_2_gamma_1_n_9.65_tau_2_n_samples_500_n_steps_4000_dt_0.01.csv'
-# data_fn = data_dir + 'lorenz_params_sig_10.00_rho_28.00_beta_2.67_n_samples_500_n_steps_4000_dt_0.01.csv'
+dataset = 'lorenz'
+data_fn = data2fn[dataset]
 
 # Training
 batch_size = 50
@@ -51,7 +51,7 @@ else:
 # Create net
 if do_load:
     print("Loading")
-    net = torch.load(model_dir + f"lorenz_predict_net_{model_no}.pth", map_location=device)
+    net = torch.load(model_dir + f"{dataset}_predict_net_{model_no}.pth", map_location=device)
 else:
     net = Net(n_inputs, n_outputs, hidden_widths, activation_fcn).to(device)
     print("Feedforward net created")
@@ -148,4 +148,4 @@ if do_test:
 
 if do_save:
     print(f"Saving model #{model_no}")
-    torch.save(net, model_dir + f"lorenz_predict_net_{model_no}.pth")
+    torch.save(net, model_dir + f"{dataset}_predict_net_{model_no}.pth")
