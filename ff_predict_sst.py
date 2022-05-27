@@ -14,14 +14,14 @@ Cmd line instructions:
 3-6. do_train, do_test, do_save, do_load. Booleans
 
 Example command:
-python ff_predict.py 99 0 true false false false
+python ff_predict_sst.py 1 1 true false false false
 '''
 
 # Model
 model_dir = '/cnl/data/spate/Corn/models/'
-n_inputs = 3 # Input dimension
+n_inputs = 500 # Input dimension
 n_outputs = n_inputs # Output dimension
-hidden_widths = [10, 10, 10] # Width of each hidden layer
+hidden_widths = [1000, 500, 500] # Width of each hidden layer
 activation_fcn = F.relu
 model_no = int(sys.argv[1])
 do_train, do_test, do_save, do_load = [sys.argv[i].lower() == 'true' for i in range(3,7)]
@@ -29,18 +29,17 @@ do_norm = True
 gpu = int(sys.argv[2]) # GPU number. -1 for CPU
 
 # Data
-n_steps = 4000 # Length of time series
-n_samples = 500 # Total number of data samples
-dt = 0.01
-dataset = 'lorenz'
+n_steps = 1455 # Total number time steps in data
+n_samples = 50 # Break up time axis into 50 pieces
+dataset = 'sst_svd_r_500'
 data_fn = data2fn[dataset]
 
 # Training
-batch_size = 50
+batch_size = 20
 alpha = 1e-3 # Learning rate
 train_eps = 5000 # Training epochs
 train_frac = 0.8 # Train / test data split
-train_timesteps = n_steps
+# train_timesteps = n_steps
 
 # Select hardware
 if gpu < 0:
@@ -57,16 +56,19 @@ else:
     print("Feedforward net created")
 
 # Load data
-data = np.loadtxt(data_fn, delimiter=',').reshape(n_samples, n_inputs, n_steps)
+data = np.loadtxt(data_fn, delimiter=',')
 
 # Normalize data
 if do_norm:
-    flat_data = np.transpose(data, axes=[1, 0, 2]).reshape(n_inputs, -1)
-    mean, std = np.mean(flat_data, axis=1), np.std(flat_data, axis=1)
-    data -= mean.reshape(1, -1, 1)
-    data /= std.reshape(1, -1, 1)
+    mean = data.mean(axis=1).reshape(-1,1)
+    std = data.std(axis=1).reshape(-1,1)
+    data -= mean
+    data /= std
 
 # Split data
+train_timesteps = int(n_steps // n_samples)
+data = data[:,:train_timesteps * n_samples].reshape(n_inputs, train_timesteps, n_samples)
+data = np.transpose(data, axes=[2, 0, 1])
 n_train_samples = int(n_samples * train_frac)
 train_data = data[:n_train_samples,:,:train_timesteps-1]
 target_data = data[:n_train_samples,:,1:train_timesteps]
@@ -127,24 +129,24 @@ if do_test:
     test_target = test_target.t() # Transpose back (n_inputs, timesteps)
 
     # Plot time series from test
-    fig, ax = plt.subplots(3, 1, sharex=True)
-    var_name = ["x", "y", "z"]
-    t = np.arange(n_steps - 1) * dt
+    # fig, ax = plt.subplots(3, 1, sharex=True)
+    # var_name = ["x", "y", "z"]
+    # t = np.arange(n_steps - 1) * dt
 
-    for i in range(n_inputs):
-        ax[i].plot(t, output[i,:])
-        ax[i].plot(t, test_target[i,:], 'k--')
-        ax[i].set_ylabel(var_name[i])
+    # for i in range(n_inputs):
+    #     ax[i].plot(t, output[i,:])
+    #     ax[i].plot(t, test_target[i,:], 'k--')
+    #     ax[i].set_ylabel(var_name[i])
 
-    ax[-1].set_xlabel("time")
-    fig.tight_layout()
-    plt.show()
+    # ax[-1].set_xlabel("time")
+    # fig.tight_layout()
+    # plt.show()
 
-    # Plot 2D projection of attractor from test
-    fig, ax = plt.subplots(1,2)
-    ax[0].plot(test_target[0,:], test_target[2,:], 'k--')
-    ax[1].plot(output[0,:], output[2,:], 'b-')
-    plt.show()
+    # # Plot 2D projection of attractor from test
+    # fig, ax = plt.subplots(1,2)
+    # ax[0].plot(test_target[0,:], test_target[2,:], 'k--')
+    # ax[1].plot(output[0,:], output[2,:], 'b-')
+    # plt.show()
 
 if do_save:
     print(f"Saving model #{model_no}")

@@ -332,4 +332,5 @@ data2fn = {
             'sine':data_dir + 'sine_period_10_n_samples_100_n_steps_4000_dt_0.01.csv',
             'sst':data_dir + 'sst.csv',
             'sst_mask':data_dir + 'sst_mask.csv',
+            'sst_svd_r_500':data_dir + 'sst_svd_r_500.csv',
             }
